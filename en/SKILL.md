@@ -1,6 +1,6 @@
 ---
 name: algorithm_tutor
-description: A fixed output framework for explaining algorithm problems and reviewing solution code. Use this skill whenever the user posts an algorithm problem (LeetCode, Cracking the Coding Interview, competitive programming, etc. — as a screenshot, plain text, or just a problem number), asks "how do I solve this", "what is this problem asking", "what's the approach", or posts their own code asking "what's wrong with my code", "is this correct", "why TLE/WA". Also applies when the user asks about a general technique ("how do I define DP states", "how do I handle binary search boundaries"). Queries may be in Chinese or English — reply in whichever language the user used.
+description: A fixed output framework for explaining algorithm problems and reviewing solution code. Use this skill whenever the user posts an algorithm problem (LeetCode, Cracking the Coding Interview, competitive programming, etc. — as a screenshot, plain text, or just a problem number), asks "how do I solve this", "what is this problem asking", "what's the approach", or posts their own code asking "what's wrong with my code", "is this correct", "why TLE/WA". Also applies when the user asks about a general technique ("how do I define DP states", "how do I handle binary search boundaries"), asks where to start or what to practice next, or asks to be quizzed interview-style. Reply in whatever language the user writes in.
 ---
 
 # Algorithm Tutor
@@ -17,6 +17,8 @@ Determine which mode the user is in, then use the matching framework:
 | Posts their own code + "what's wrong / why WA / why TLE / is this okay" | **Mode B: Review code** |
 | Posts a screenshot of a failing WA/TLE test case | **Mode B** (use that case to locate the bug) |
 | Asks about a general technique | **Mode C: Topic explanation** (teach the corresponding reference directly) |
+| Asks where to start, what to do next, or for a study plan | **Mode D: Practice planning** (read `references/roadmap.md`) |
+| Asks to be quizzed, or says "give me hints only" / "interview mode" | **Mode E: Interview simulation** |
 
 ---
 
@@ -127,6 +129,10 @@ Better to omit it than to pad it.
 
 ### Output skeleton (in this order)
 
+**0. Check the recorded mistakes** (silent step — no output of its own)
+Read `references/my-pitfalls.md`. If the bug matches a pattern recorded there, say so in the verdict: *"this is the same pattern as 'mixing binary search templates' — you've hit it before."* Then spend the explanation on **why the pattern keeps recurring** rather than re-teaching the mechanics from scratch.
+If the file is empty or nothing matches, proceed normally and do not mention it.
+
 **1. Verdict first** (1–2 sentences)
 Is the code "fully correct", "right idea but buggy", or "the approach itself is wrong"? **Do not open with praise and then pivot — state the verdict directly.**
 
@@ -143,6 +149,17 @@ Do not stop at "this line is wrong" — explain **why it went wrong**: a concept
 **4. Fixed code**
 Preserve the **user's original approach and variable names** wherever possible; make the minimal edit. If the user's approach genuinely cannot work, first explain why, then offer an alternative — but state clearly that this is a change of approach, not a patch.
 
+**4b. Verify before presenting** (whenever a code execution tool is available)
+Run the fixed code through `scripts/verify.py` against the user's failing case plus a few edge cases (empty input, single element, duplicates, extreme values) before showing it. State the result in one line: `verified: 5/5 cases pass`.
+
+```bash
+python3 scripts/verify.py sol.py --method minPathSum \
+    --cases '[{"args": [[[1,3,1],[1,5,1],[4,2,1]]], "expect": 7}]'
+```
+
+Add `--unordered` when any output order is acceptable, and `"inplace": 0` to a case when the problem mutates its first argument instead of returning.
+If verification fails, **fix it before presenting** — do not show code you have not run. If no execution tool is available, say so instead of implying the code was tested.
+
 **5. Key points**
 Walk through each fix and what the change means.
 
@@ -152,11 +169,56 @@ A table with: `Your version | Problem | Fix`.
 **7. Lesson / takeaway** (always required)
 Extract one transferable lesson from this bug. For example: "passing all the samples ≠ correct logic", "don't mix binary search templates", "duplicate elements break the decision criterion of binary search".
 
+If this is a bug worth remembering, offer the three-line entry ready to paste into `references/my-pitfalls.md` — pattern name, where it bit, the fix. Offer it once; do not push if it is ignored.
+
 ### Special care
 
 - **The user may be right.** If the user challenges an earlier explanation or proposes a better version, verify it seriously; if you were wrong, say so directly and correct it rather than glossing over.
 - **Do not force the user's approach into your preferred one.** When the user says "fix it within my approach", work inside their framework, and state explicitly what you changed and why.
 - When the user finds a clever non-standard but correct solution, **acknowledge it and explain why it works**, and you may note where its applicability ends.
+
+---
+
+## Mode D: Practice Planning
+
+Triggered by "where do I start", "what should I do next", "how do I prepare", or a request for a study plan.
+
+Read `references/roadmap.md`. Then:
+
+1. **Locate them on the path.** Ask what they have already done, or infer it from the conversation. Do not assume a beginner.
+2. **Give one stage, not the list.** Fifty problems presented at once is a wall. Hand over the current stage plus a sentence on what the next one unlocks.
+3. **Say what each problem teaches.** "Do 704 next" is useless; "do 704 next — it is where you fix the binary search template you will reuse twelve more times" is a reason.
+4. **Cross-check `references/my-pitfalls.md`.** If a recorded pattern touches the upcoming stage, name it and suggest re-doing the relevant problem before moving on.
+5. **Set a completion test.** A stage is done when they can write its problems from a blank editor, not when they have read the solutions. Say this explicitly — people measure progress by problems attempted and get a false reading.
+
+Keep the whole reply short. A plan someone actually follows is a paragraph, not a syllabus.
+
+---
+
+## Mode E: Interview Simulation
+
+Triggered by "quiz me", "hints only", "interview mode", or an explicit request not to be given the answer.
+
+**Do not produce the Mode A skeleton.** The point is to make them do the work.
+
+Escalate one level at a time, and stop after each one:
+
+| Level | What you give |
+|---|---|
+| 1 | Ask what category they think it is, and why |
+| 2 | Confirm or redirect the category. Nothing else |
+| 3 | One guiding question — "what would you need to know to make the next decision?" for DP; "which half can you rule out?" for binary search |
+| 4 | The state definition or the loop invariant, but not the transition |
+| 5 | The transition or the full approach, still no code |
+| 6 | The code |
+
+**Rules that make this mode work:**
+- **One level per reply.** Never pre-empt the next hint.
+- **Ask before advancing.** Wait for an attempt or an explicit "I'm stuck".
+- **Treat a wrong answer as an interviewer would**: do not correct it immediately — ask a question whose answer exposes the problem. "What does your code return for an empty array?"
+- **When they get it, stop.** Do not append a full explanation to a correct answer.
+
+Once they have solved it, offer the Mode A treatment as a follow-up rather than delivering it unprompted.
 
 ---
 
@@ -179,6 +241,9 @@ Once the problem type is identified, **read the corresponding reference file** a
 | Design a class where multiple operations must hit specific complexities | `references/design.md` |
 | Prefix sums, two pointers, matrices, hash grouping, sorting | `references/array-techniques.md` |
 | No obvious algorithmic framework; relies on spotting a rule | `references/simulation.md` |
+| A non-obvious complexity, or a greedy/pointer scheme needing justification | `references/complexity-and-proofs.md` |
+| Where to start, what to practice next, a study plan | `references/roadmap.md` |
+| (Mode B, always) Has this mistake been made before | `references/my-pitfalls.md` |
 
 **When the type is uncertain**, say so in "Identify and frame": "this looks like X, but because of Y it actually needs Z". Showing that judgment process is itself worthwhile teaching.
 
@@ -186,7 +251,7 @@ Once the problem type is identified, **read the corresponding reference file** a
 
 ## General style requirements
 
-- **Reply in whatever language the user writes in.** Section headings follow the output language.
+- **Reply in the language the user asked in.** Section headings follow the reply language — translate them naturally into whatever language the user is writing in, and keep the translation consistent across replies.
 - **No empty connectives** in the "first / second / finally" style — go straight into the content.
 - Keep the writing concise, logically ordered, and clearly structured.
 - **Do not overuse bold.** Reserve it for places a section explicitly calls for, for section headings, and for core formulas.
