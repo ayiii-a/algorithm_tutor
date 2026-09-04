@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="./assets/logo.png" alt="algorithm_tutor logo" width="220">
-  <h1>Algorithm_tutor</h1>
+  <h1>Algorithm Tutor</h1>
 </div>
 
 A [Claude Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that gives algorithm work a **fixed, predictable structure** — whether you are learning a new problem, debugging your own code, planning what to practice, or proving something for a class.
